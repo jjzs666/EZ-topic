@@ -1,5 +1,7 @@
 package com.example.kfdx.service;
 
+import com.example.kfdx.pojo.Topic;
+import com.example.kfdx.util.Result;
 import com.example.kfdx.util.Utils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -19,12 +21,16 @@ import java.util.HashMap;
 @Service
 public class ParseService {
 
-    public Object getTopic(String param) {
-        //请求的URl
-        String uri = null;
+    public Object getTopic(Topic topic) {
+        String param = topic.getName();
+
+        //直接取最大尾数
+        param = param.substring(param.length() >= 20 ? param.length() - 20 : 0);
+
+        String uri;
         try {
             uri = "https://www.tiw.cn/s/" + URLEncoder.encode(param, "utf-8");
-            System.out.println(uri);
+
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
@@ -40,13 +46,14 @@ public class ParseService {
         }
 
         Document doc = Jsoup.parse(html);
-        System.out.println(html);
 
         Elements htmllist = doc.select("ul[class=search_zhaodao_list]");
         for (Element element : htmllist) {
-            String href = element.select("li").get(0).select("a").attr("href");
+            if (topic.getStartLine() > htmllist.size()) {
+                topic.setStartLine(htmllist.size());
+            }
+            String href = element.select("li").get(topic.getStartLine()).select("a").attr("href");
             String topicHtml = null;
-            System.out.println(href);
             try {
                 topicHtml = Utils.getHtmlContent("https://www.tiw.cn" + href);
             } catch (IOException e) {
@@ -60,15 +67,16 @@ public class ParseService {
                 for (Element element1 : select) {
                     map.put(element1.select("span").text().toLowerCase(), element1.select("p").text());
                 }
-                System.out.println(map.get(topicDoc.select("span[class=zuoti_note_bomspan]").text().substring(0,1).toLowerCase()));
+                return Result.succeed(map.get(topicDoc.select("span[class=zuoti_note_bomspan]").text().substring(0, 1).toLowerCase()));
             }
-            System.out.println(topicDoc.select("span[class=zuoti_note_bomspan]").text());
+            if (topicType.contains("判断")) {
+                return Result.succeed(topicDoc.select("span[class=zuoti_note_bomspan]").text().substring(0, 1));
+            }
+            return Result.succeed(topicDoc.select("span[class=zuoti_note_bomspan]").text());
 
-
-            return null;
         }
 
-        return null;
+        return Result.fail();
     }
 
 

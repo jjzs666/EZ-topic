@@ -1,9 +1,9 @@
 package com.example.kfdx.controller;
 
+import com.example.kfdx.pojo.Topic;
 import com.example.kfdx.service.ParseService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author : Jame
@@ -15,9 +15,9 @@ public class MainController {
     @Autowired
     private ParseService parseService;
 
-    @GetMapping("/getAnswer")
-    public Object getAnswer(String s) {
-        return parseService.getTopic(s);
+    @PostMapping("/getAnswer")
+    public Object getAnswer(@RequestBody Topic topic) {
+        return parseService.getTopic(topic);
     }
 
 }
