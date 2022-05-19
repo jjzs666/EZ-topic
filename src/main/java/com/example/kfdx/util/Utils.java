@@ -50,9 +50,6 @@ public class Utils {
         httpGet.setHeader("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36");
 
 
-
-
-
         //3、获取网址返回结果
         CloseableHttpResponse execute = aDefault.execute(httpGet);
         //4、获取返回实体

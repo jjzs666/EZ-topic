@@ -1,7 +1,8 @@
 package com.example.kfdx.controller;
 
 import com.example.kfdx.pojo.Topic;
-import com.example.kfdx.service.ParseService;
+import com.example.kfdx.service.MainService;
+import com.example.kfdx.service.ParseServiceTIW;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,11 +14,11 @@ import org.springframework.web.bind.annotation.*;
 public class MainController {
 
     @Autowired
-    private ParseService parseService;
+    private MainService mainService;
 
     @PostMapping("/getAnswer")
     public Object getAnswer(@RequestBody Topic topic) {
-        return parseService.getTopic(topic);
+        return mainService.invoke(topic);
     }
 
 }
