@@ -57,7 +57,7 @@ public class ParseServiceTIW implements ParseService {
             throw new RuntimeException(e);
         }
         if (StringUtil.isEmpty(html)) {
-            return Result.fail("查询网站失败");
+            return -1;
         }
 
         Document doc = Jsoup.parse(html);
@@ -86,7 +86,7 @@ public class ParseServiceTIW implements ParseService {
                 }
             }
         }
-        return Result.fail();
+        return -1;
     }
 
 

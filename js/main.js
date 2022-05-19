@@ -126,7 +126,7 @@ function sendRequest(jsonData) {
         success: function (response) {
             if (response.code === 200) {
                 s = response.data;
-                console.log(s)
+                console.log("后端返回"+s)
             } else {
                 console.log("后端出问题..")
                 s = null;

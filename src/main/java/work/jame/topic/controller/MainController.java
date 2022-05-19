@@ -17,6 +17,7 @@ public class MainController {
 
     @PostMapping("/getAnswer")
     public Object getAnswer(@RequestBody Topic topic) {
+
         return mainService.invoke(topic);
     }
 

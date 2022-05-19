@@ -15,10 +15,9 @@ public class Result {
     //正确答案下标
     private Integer correctAnswerIndex;
 
-    public Result() {
-    }
 
-    public Result(Integer code, Object data, String message, Integer correctAnswerIndex) {
+
+    public Result(Integer code, Integer correctAnswerIndex, Object data, String message) {
         this.code = code;
         this.message = message;
         this.data = data;
@@ -26,28 +25,23 @@ public class Result {
     }
 
     public static Object succeed(Integer correctAnswerIndex) {
-        return JSONObject.toJSON(new Result(200, null, null, correctAnswerIndex));
+        return JSONObject.toJSON(new Result(200, correctAnswerIndex, null, null));
     }
 
     //成功-数据
     public static Object succeed(String data) {
-        return JSONObject.toJSON(new Result(200, data, null, -1));
+        return JSONObject.toJSON(new Result(200, -1, data, null));
     }
 
 
     public static Object fail() {
-        return JSONObject.toJSON(new Result(500, null, null, -1));
+        return JSONObject.toJSON(new Result(500, -1, null, null));
     }
 
     public static Object fail(String message) {
-        return JSONObject.toJSON(new Result(500, null, message, -1));
+        return JSONObject.toJSON(new Result(500, -1, null, message));
     }
 
 
-    public String showData() {
-        return "Result{" +
-                "code=" + code +
-                ", data=" + data +
-                '}';
-    }
+
 }
