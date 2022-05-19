@@ -1,4 +1,4 @@
-package com.example.kfdx.config;
+package work.jame.topic.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

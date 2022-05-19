@@ -1,8 +1,7 @@
-package com.example.kfdx.controller;
+package work.jame.topic.controller;
 
-import com.example.kfdx.pojo.Topic;
-import com.example.kfdx.service.MainService;
-import com.example.kfdx.service.ParseServiceTIW;
+import work.jame.topic.pojo.Topic;
+import work.jame.topic.service.MainService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

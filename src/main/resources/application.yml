@@ -1,2 +1,8 @@
 server:
   port: 9897
+
+ez:
+ topic:
+    url: https://www.tiw.cn/s/,https://www.tiw.cn
+    retry-count: 5
+    allow-pass-price: 0.85

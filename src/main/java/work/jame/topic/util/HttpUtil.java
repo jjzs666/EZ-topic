@@ -1,4 +1,4 @@
-package com.example.kfdx.util;
+package work.jame.topic.util;
  
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -8,7 +8,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
  
 import java.io.IOException;
-import java.net.URLEncoder;
 
 /**
  * @ClassName: Utils
@@ -17,7 +16,7 @@ import java.net.URLEncoder;
  * @Date: 2020/11/13 15:25
  * @Version: V1.0
  */
-public class Utils {
+public class HttpUtil {
     /**
      * 公共爬虫类
      * @param url 请求Uri路径

@@ -21,32 +21,67 @@ $(document).ready(function () {
 })
 
 function begin() {
-    for (let i = 0; i < 3; i++) {
-        console.log("第"+(i+1)+"题");
+    for (let i = 0; i < ("li.subject.ng-scope.single_selection").length; i++) {
+        console.log("第" + (i + 1) + "题");
         let liw = $("li.subject.ng-scope.single_selection").eq(i);
         let div1 = $(liw).children().eq(0);
         let div2 = $(div1).children().eq(0);
         let div3 = $(div2).children().eq(0);
         let span1 = $(div3).children().eq(1);
         let p1 = $(span1).children().eq(0);
+        //题目
         let topic = $.trim($(p1).text());
-        //console.log(topic + "0000")
-        let jsonData = {
-            "name": topic,
-            "startLine": 0
+
+        let topicTypeDiv=$(div2).children(1);
+        //题目类型
+        let topicTypeText=$($(topicTypeDiv).children(0)).text();
+        let topicTypeInt=-1;
+        if(topicTypeText=="单选题"){
+            topicTypeInt=1;
         }
 
 
-        let correctAnswer = $.trim(sendRequest(jsonData));
+
+
+        let answers= [];
+        for (let k = 0; k < $(ol1).children().length; k++) {
+
+            let jtm = $(ol1).children().eq(k);
+            let lable1 = $(jtm).children().eq(0);
+            let tmDiv = $(lable1).children().eq(1);
+            let tmTextSpan = $(tmDiv).children().eq(0);
+            //具体答案
+            let answer = {
+                "index": k,
+                "content": $($(tmTextSpan).children().eq(0)).text()
+            }
+            answers[k] = answer;
+
+            // if (text == correctAnswer) {
+            //     let spanRadio = $(lable1).children().eq(0);
+            //     $($(spanRadio).children().eq(0)).click();
+            //     return true;
+            // }
+        }
+
+        let jsonData = {
+            "name": topic,
+            "startLine": 0,
+            "answers": answers,
+            "type":topicTypeInt
+        }
+
+
+        sendRequest(jsonData)
         // $(tm).css("background-color","#031a60")
 
 
         if (!fill(div1, correctAnswer)) {
             for (let r = 1; r <= 5; r++) {
-                console.log("重试次数:"+r);
+                console.log("重试次数:" + r);
                 let RjsonData = {
                     "name": topic,
-                    "startLine": i
+                    "startLine": r
                 }
                 let correctAnswer1 = $.trim(sendRequest(RjsonData));
                 if (fill(div1, correctAnswer1)) {
@@ -70,26 +105,12 @@ function fill(div1, correctAnswer) {
         let tmDiv = $(lable1).children().eq(1);
         let tmTextSpan = $(tmDiv).children().eq(0);
         let text = $($(tmTextSpan).children().eq(0)).text();
-        console.log(text+"=====daan")
-        text = text.replace("\"", "");
-        text = text.replace("”", "");
-        text = text.replace("“", "");
-        text = text.replace("〝", "");
-        text = text.replace("〞", "");
-        text = text.replace("＂", "");
-        correctAnswer = correctAnswer.replace("\"", "");
-        correctAnswer = correctAnswer.replace("”", "");
-        correctAnswer = correctAnswer.replace("“", "");
-        correctAnswer = correctAnswer.replace("〝", "");
-        correctAnswer = correctAnswer.replace("〞", "");
-        correctAnswer = correctAnswer.replace("＂", "");
 
-        console.log("答案:"+text+"==正确答案:"+correctAnswer+"是否成功:"+(text==correctAnswer))
-        if (text == correctAnswer) {
-            let spanRadio = $(lable1).children().eq(0);
-            $($(spanRadio).children().eq(0)).click();
-            return true;
-        }
+        // if (text == correctAnswer) {
+        //     let spanRadio = $(lable1).children().eq(0);
+        //     $($(spanRadio).children().eq(0)).click();
+        //     return true;
+        // }
     }
 }
 
@@ -107,7 +128,7 @@ function sendRequest(jsonData) {
                 s = response.data;
                 console.log(s)
             } else {
-                console.log("======")
+                console.log("后端出问题..")
                 s = null;
             }
         }
