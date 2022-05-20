@@ -22,10 +22,12 @@ public class StringUtil {
 
 
     /**
+     *  <a href="https://blog.csdn.net/rchm8519/article/details/107225653">来源</a>
      * 第二种实现方式 (获取两串不匹配字符数)
      * @param str
      * @param target
      * @return
+     *
      */
     private static int compare(String str, String target) {
         int d[][]; // 矩阵
