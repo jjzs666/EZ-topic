@@ -39,16 +39,16 @@ public class ParseServiceTIW implements ParseService {
         //这个网站的查询最大20长度,而且开头重复的内容较多,所以从后面开始查
         topicStr = topicStr.substring(topicStr.length() >= 20 ? topicStr.length() - 20 : 0);
 
-        String uri;
+        String url;
         try {
-            uri = properties.getUrl()[0] + URLEncoder.encode(topicStr, "utf-8");
+            url = properties.getUrl()[0] + URLEncoder.encode(topicStr, "utf-8");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
 
         String html = null;
         try {
-            html = HttpUtil.getHtmlContent(uri);
+            html = HttpUtil.getHtmlContent(url);
             //防止请求太快给禁ip了...
             Thread.sleep(200);
         } catch (IOException e) {
@@ -57,26 +57,40 @@ public class ParseServiceTIW implements ParseService {
             throw new RuntimeException(e);
         }
         if (StringUtil.isEmpty(html)) {
-            return -1;
+            return Result.failed("该页面没有数据!url:" + url);
         }
+
+        //当前尝试次数
+        int currentTryAcquireCount = 0;
 
         Document doc = Jsoup.parse(html);
 
         Elements htmllist = doc.select("ul[class=search_zhaodao_list]");
+
+        int beginIndex = 0;
         //获取到查询结果的首页,里面有很多结果,需要点进去具体那个
         for (Element element : htmllist) {
-            //如果此次没有匹配到则继续找下个答案的此处
+            //这个答案的类型
+            String searchResultType = htmllist.select("div[class=search_zhaodao_listbom]").select("em").text();
+            if (StringUtil.getAnswerType(searchResultType) != topic.getType()) {
+                beginIndex++;
+                continue;
+            }
+            //如果此次没有匹配到则继续找下个答案的次数
             int nextTopicRetryCount;
+            //防止搜索出的答案不够尝试的次数
             if (htmllist.size() < properties.getNextTopicRetryCount()) {
                 nextTopicRetryCount = htmllist.size();
             } else {
                 nextTopicRetryCount = properties.getNextTopicRetryCount();
             }
             for (int i = 0; i < nextTopicRetryCount; i++) {
-                int correctAnswerIndex;
-                if ((correctAnswerIndex = lookForMatching(topic, element, nextTopicRetryCount)) > -1) {
+                Integer[] correctAnswerIndexs;
+                if ((correctAnswerIndexs = lookForMatching(topic, element, i + beginIndex)) != null) {
                     //找到了
-                    return correctAnswerIndex;
+                    return Result.succeed(correctAnswerIndexs, i + 1, topic.getType());
+                } else {
+                    currentTryAcquireCount = i + 1;
                 }
                 try {
                     //防止访问太快
@@ -86,7 +100,7 @@ public class ParseServiceTIW implements ParseService {
                 }
             }
         }
-        return -1;
+        return Result.failed("没有找到合适的结果", currentTryAcquireCount);
     }
 
 
@@ -95,11 +109,11 @@ public class ParseServiceTIW implements ParseService {
      *
      * @param topic
      * @param element
-     * @param nextTopicRetryCount
+     * @param topicIndex
      * @return
      */
-    private int lookForMatching(Topic topic, Element element, int nextTopicRetryCount) {
-        String href = element.select("li").get(nextTopicRetryCount).select("a").attr("href");
+    private Integer[] lookForMatching(Topic topic, Element element, int topicIndex) {
+        String href = element.select("li").get(topicIndex).select("a").attr("href");
         String topicHtml = null;
         try {
             topicHtml = HttpUtil.getHtmlContent(properties.getUrl()[1] + href);
@@ -108,23 +122,38 @@ public class ParseServiceTIW implements ParseService {
         }
 
         if (StringUtil.isEmpty(topicHtml)) {
-            return -1;
+            return null;
         }
         //现在已经到题目的具体解析界面了,寻找答案即可
         Document topicDoc = Jsoup.parse(topicHtml);
         String topicType = topicDoc.select("p[class=zuoti_maintop_left]").select("span").text();
-        //判断这个题目的类型,例如当前题目是单选,然后查出的题目是多选或判断,那么在下去没有意义
-        if (topicType.contains("单") && topic.getType() == 1) {
-            //选项a/b/c/d-题目
-            HashMap<String, String> map = new HashMap<>();
-            Elements select = topicDoc.select("div[class=zuoti_main_list danxuan]").select("div[class=chapter_main_timutigan]");
-            for (Element element1 : select) {
-                map.put(element1.select("span").text().toLowerCase(), element1.select("p").text());
+
+        Elements select = topicDoc.select("div[class=zuoti_main_list danxuan]").select("div[class=chapter_main_timutigan]");
+
+        //题解给的选项
+        String key = topicDoc.select("span[class=zuoti_note_bomspan]").text().substring(0, 1).toLowerCase();
+
+        String searchAnswer = null;
+        for (Element element1 : select) {
+            //判断当前题目类型,如果单多选则获取选项abcd来和答案解析首字母来判断
+            //如果是判断题则使用内容来判断,因为判断题的题解直接就是对或错
+            if (topic.getType() == 3) {
+                if (element1.select("p").text().equals(key)) {
+                    searchAnswer = element1.select("p").text();
+                    break;
+                }
+
+            } else if (topic.getType() == 1) {
+                if (element1.select("span").text().toLowerCase().equals(key)) {
+                    searchAnswer = element1.select("p").text();
+                    break;
+                }
             }
+        }
 
-            //题解给的选项
-            String key=topicDoc.select("span[class=zuoti_note_bomspan]").text().substring(0, 1).toLowerCase();
-
+        //判断这个题目的类型,例如当前题目是单选,然后查出的题目是多选或判断,那么在下去没有意义
+        if ((topicType.contains("单") && topic.getType() == 1) ||
+                (topicType.contains("判断") && topic.getType() == 3)) {
 
             //相似度最高的选择答案
             Answers similarityHighest = null;
@@ -134,8 +163,8 @@ public class ParseServiceTIW implements ParseService {
             //获取到所有选项了,现在只需要遍历寻找到匹配度最高的选择返回即可
             List<Answers> answers = topic.getAnswers();
             for (Answers answer : answers) {
-                double currentSimilarity = -1;
-                if ((currentSimilarity = StringUtil.similarityRatio(map.get(key), answer.getContent())) > currentSimilarityHighest) {
+                double currentSimilarity;
+                if ((currentSimilarity = StringUtil.similarityRatio(searchAnswer, answer.getContent())) > currentSimilarityHighest) {
                     //当前的匹配度大于设置的才能返回
                     if (currentSimilarity >= properties.getAllowPassPrice()) {
                         currentSimilarityHighest = currentSimilarity;
@@ -144,15 +173,16 @@ public class ParseServiceTIW implements ParseService {
                 }
             }
             if (similarityHighest != null) {
-                return similarityHighest.getIndex();
+                return new Integer[]{similarityHighest.getIndex()};
             }
-            return -1;
+            return null;
 
         } else if (topicType.contains("多") && topic.getType() == 2) {
-
-        } else if (topicType.contains("判断") && topic.getType() == 2) {
-            //return Result.succeed(topicDoc.select("span[class=zuoti_note_bomspan]").text().substring(0, 1));
         }
-        return -1;
+//      }  } else if (topicType.contains("判断") && topic.getType() == 3) {
+//            //searchAnswer
+//         //   return Result.succeed(topicDoc.select("span[class=zuoti_note_bomspan]").text().substring(0, 1));
+//        }
+        return null;
     }
 }

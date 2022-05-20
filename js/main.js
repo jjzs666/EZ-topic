@@ -11,6 +11,10 @@
 // ==/UserScript==
 
 
+//存放没有答案的题目,用于最后显示
+var noneAnswer = "";
+//已经解析过得数量
+var parsedCount = 1;
 $(document).ready(function () {
     setTimeout(function () {
         if (confirm("开始吗?")) {
@@ -21,101 +25,109 @@ $(document).ready(function () {
 })
 
 function begin() {
-    for (let i = 0; i < ("li.subject.ng-scope.single_selection").length; i++) {
-        console.log("第" + (i + 1) + "题");
-        let liw = $("li.subject.ng-scope.single_selection").eq(i);
+    console.log("==============单选题==================")
+    universal($("li.subject.ng-scope.single_selection"));
+    console.log("==============判断题==================")
+    universal($("li.subject.ng-scope.true_or_false"));
+    console.log("没有答案的题目:" + noneAnswer);
+}
+
+// .css("background-color","#8cff5f")
+
+//单选和判断通用
+function universal(roots) {
+    for (let i = 0; i < $(roots).length; i++) {
+        let liw = $(roots).eq(i);
         let div1 = $(liw).children().eq(0);
         let div2 = $(div1).children().eq(0);
         let div3 = $(div2).children().eq(0);
         let span1 = $(div3).children().eq(1);
         let p1 = $(span1).children().eq(0);
+
         //题目
         let topic = $.trim($(p1).text());
 
-        let topicTypeDiv=$(div2).children(1);
+        if (topic == undefined || topic == "") {
+            continue;
+        }
+        console.log("第" + (i + 1) + "题");
+
+
+        let tm = $(div1).children().eq(1);
+        let ol1 = $(tm).children().eq(0);
+
         //题目类型
-        let topicTypeText=$($(topicTypeDiv).children(0)).text();
-        let topicTypeInt=-1;
-        if(topicTypeText=="单选题"){
-            topicTypeInt=1;
+        let topicTypeDiv1 = $(div2).children().eq(1);
+        let topicTypeText = $($(topicTypeDiv1).children().eq(0)).text();
+        let topicTypeInt = -1;
+        if (topicTypeText == "单选题") {
+            topicTypeInt = 1;
+        } else if (topicTypeText == "判断题") {
+            topicTypeInt = 3;
         }
 
+        let answers = [];
 
-
-
-        let answers= [];
         for (let k = 0; k < $(ol1).children().length; k++) {
 
-            let jtm = $(ol1).children().eq(k);
-            let lable1 = $(jtm).children().eq(0);
-            let tmDiv = $(lable1).children().eq(1);
-            let tmTextSpan = $(tmDiv).children().eq(0);
-            //具体答案
-            let answer = {
-                "index": k,
-                "content": $($(tmTextSpan).children().eq(0)).text()
-            }
-            answers[k] = answer;
+            if (topicTypeText == "单选题" || topicTypeText == "判断题") {
+                let jtm = $(ol1).children().eq(k);
+                let lable1 = $(jtm).children().eq(0);
+                let tmDiv = $(lable1).children().eq(1);
+                let tmTextSpan = $(tmDiv).children().eq(0);
 
-            // if (text == correctAnswer) {
-            //     let spanRadio = $(lable1).children().eq(0);
-            //     $($(spanRadio).children().eq(0)).click();
-            //     return true;
-            // }
+                let answer = {};
+                if (topicTypeText == "判断题") {
+                    answer = {
+                        "index": k,
+                        "content": $(tmTextSpan).text()
+                    }
+                } else {
+                    //具体选择答案
+                    answer = {
+                        "index": k,
+                        "content": $($(tmTextSpan).children().eq(0)).text()
+                    }
+                }
+                answers[k] = answer;
+            }
         }
 
         let jsonData = {
             "name": topic,
-            "startLine": 0,
             "answers": answers,
-            "type":topicTypeInt
+            "type": topicTypeInt
         }
 
+        let result = sendRequest(jsonData);
+        disposeResult(result, topicTypeInt, ol1);
+    }
+}
 
-        sendRequest(jsonData)
-        // $(tm).css("background-color","#031a60")
 
-
-        if (!fill(div1, correctAnswer)) {
-            for (let r = 1; r <= 5; r++) {
-                console.log("重试次数:" + r);
-                let RjsonData = {
-                    "name": topic,
-                    "startLine": r
-                }
-                let correctAnswer1 = $.trim(sendRequest(RjsonData));
-                if (fill(div1, correctAnswer1)) {
-                    break;
-                }
+//处理返回结果 ol1 这个选项的外层ol标签
+function disposeResult(result, topicTypeInt, ol1) {
+    if (result != null) {
+        if (topicTypeInt == 1 || topicTypeInt == 3) {
+            let resultCount = result.correctAnswerIndex.length;
+            for (let j = 0; j < resultCount; j++) {
+                let jtm = $(ol1).children().eq(result.correctAnswerIndex[j]);
+                let lable1 = $(jtm).children().eq(0);
+                let spanRadio = $(lable1).children().eq(0);
+                $($(spanRadio).children().eq(0)).click();
             }
+        } else if (topicTypeInt == 2) {
 
         }
-
+    } else {
+        noneAnswer += "[" + (parsedCount) + "] ";
     }
+    parsedCount++;
 }
 
-function fill(div1, correctAnswer) {
-    let tm = $(div1).children().eq(1);
-    let ol1 = $(tm).children().eq(0);
-
-    for (let k = 0; k < $(ol1).children().length; k++) {
-
-        let jtm = $(ol1).children().eq(k);
-        let lable1 = $(jtm).children().eq(0);
-        let tmDiv = $(lable1).children().eq(1);
-        let tmTextSpan = $(tmDiv).children().eq(0);
-        let text = $($(tmTextSpan).children().eq(0)).text();
-
-        // if (text == correctAnswer) {
-        //     let spanRadio = $(lable1).children().eq(0);
-        //     $($(spanRadio).children().eq(0)).click();
-        //     return true;
-        // }
-    }
-}
-
+//发送请求
 function sendRequest(jsonData) {
-    let s;
+    let result = null;
     $.ajax({
         type: "post",
         url: "http://localhost:9897/getAnswer",
@@ -124,14 +136,13 @@ function sendRequest(jsonData) {
         data: JSON.stringify(jsonData),
         dataType: "json",
         success: function (response) {
-            if (response.code === 200) {
-                s = response.data;
-                console.log("后端返回"+s)
+            if (response.code == 200) {
+                console.log("获取成功! 答案的下标为:" + response.correctAnswerIndex + " 尝试次数:" + response.tryAcquireCount)
+                result = response;
             } else {
-                console.log("后端出问题..")
-                s = null;
+                console.log(response.message);
             }
         }
     });
-    return s;
+    return result;
 }

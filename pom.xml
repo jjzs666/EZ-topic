@@ -8,11 +8,11 @@
         <version>2.6.7</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.example</groupId>
+    <groupId>work.jame</groupId>
     <artifactId>EZ-topic</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>kfdx</name>
-    <description>kfdx</description>
+    <name>ez-topic</name>
+    <description>ez-topic</description>
     <properties>
         <java.version>1.8</java.version>
     </properties>

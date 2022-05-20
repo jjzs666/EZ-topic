@@ -86,6 +86,16 @@ public class StringUtil {
         return 1 - (double) compare(strA, strB) / Math.max(strA.length(), strB.length());
     }
 
+    public static int getAnswerType(String s){
+        if(s.contains("单"))
+            return 1;
+        if(s.contains("多"))
+            return 2;
+        if(s.contains("判断"))
+            return 3;
+        return -1;
+    }
+
 
 
 

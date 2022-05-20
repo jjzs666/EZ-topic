@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import work.jame.topic.util.Result;
+import work.jame.topic.util.StringUtil;
 
 /**
  * @author : Jame
@@ -19,14 +20,11 @@ public class MainService {
     private ParseService parseService;
 
     public Object invoke(Topic topic) {
-        int i = Integer.parseInt(String.valueOf(parseService.parse(topic)));
-        if (i > -1) {
-            Result result = new Result(200, i,null, null);
-            System.out.println(JSONObject.toJSONString(result));
-            System.out.println(result);
-            return Result.succeed(i);
+        if(StringUtil.isEmpty(topic.getName())){
+            return Result.failed("提交的题目为空");
         }
-        return Result.fail();
+        return parseService.parse(topic);
+
     }
 
 }

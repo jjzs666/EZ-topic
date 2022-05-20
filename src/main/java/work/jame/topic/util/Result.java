@@ -12,36 +12,87 @@ public class Result {
     private Integer code;
     private Object data;
     private String message;
+    private Integer type;
     //正确答案下标
-    private Integer correctAnswerIndex;
+    private Integer[] correctAnswerIndex;
+    //尝试次数
+    private Integer tryAcquireCount;
 
 
-
-    public Result(Integer code, Integer correctAnswerIndex, Object data, String message) {
+    public Result(Integer code, Integer[] correctAnswerIndex, Integer tryAcquireCount, Object data, String message,Integer type) {
         this.code = code;
+        this.type=type;
         this.message = message;
         this.data = data;
-        this.correctAnswerIndex = correctAnswerIndex;
+        this.correctAnswerIndex= correctAnswerIndex;
+        this.tryAcquireCount = tryAcquireCount;
     }
 
-    public static Object succeed(Integer correctAnswerIndex) {
-        return JSONObject.toJSON(new Result(200, correctAnswerIndex, null, null));
+    public static Object succeed(Integer[] correctAnswerIndex, Integer tryAcquireCount,Integer type) {
+        return JSONObject.toJSON(new Result(200, correctAnswerIndex, tryAcquireCount, null, null,type));
     }
 
     //成功-数据
-    public static Object succeed(String data) {
-        return JSONObject.toJSON(new Result(200, -1, data, null));
+    public static Object succeed(Integer[] correctAnswerIndex, Integer tryAcquireCount, Object data, String message,Integer type) {
+        return JSONObject.toJSON(new Result(200, correctAnswerIndex, tryAcquireCount, data, message,type));
     }
 
 
-    public static Object fail() {
-        return JSONObject.toJSON(new Result(500, -1, null, null));
+    //失败-信息-尝试次数
+    public static Object failed(String message, Integer tryAcquireCount) {
+        return JSONObject.toJSON(new Result(666, new Integer[]{-1}, tryAcquireCount, null, message,-1));
     }
 
-    public static Object fail(String message) {
-        return JSONObject.toJSON(new Result(500, -1, null, message));
+    //失败-信息
+    public static Object failed(String message) {
+        return JSONObject.toJSON(new Result(666,  new Integer[]{-1}, -1, null, message,-1));
     }
 
+    public Integer getCode() {
+        return code;
+    }
 
+    public void setCode(Integer code) {
+        this.code = code;
+    }
 
+    public Object getData() {
+        return data;
+    }
+
+    public void setData(Object data) {
+        this.data = data;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
+    }
+
+    public Integer[] getCorrectAnswerIndex() {
+        return correctAnswerIndex;
+    }
+
+    public void setCorrectAnswerIndex(Integer[] correctAnswerIndex) {
+        this.correctAnswerIndex = correctAnswerIndex;
+    }
+
+    public Integer getTryAcquireCount() {
+        return tryAcquireCount;
+    }
+
+    public void setTryAcquireCount(Integer tryAcquireCount) {
+        this.tryAcquireCount = tryAcquireCount;
+    }
 }
