@@ -16,11 +16,18 @@ var noneAnswer = "";
 //已经解析过得数量
 var parsedCount = 1;
 $(document).ready(function () {
+    console.log("       _              __  __   ______ ")
+    console.log("      | |     /\     |  \/  | |  ____|")
+    console.log("      | |    /  \    | \  / | | |__   ")
+    console.log("  _   | |   / /\ \   | |\/| | |  __|  ")
+    console.log(" | |__| |  / ____ \  | |  | | | |____ ")
+    console.log("  \____/  /_/    \_\ |_|  |_| |______|")
     setTimeout(function () {
         if (confirm("开始吗?")) {
+            console.log("正在加载..")
             begin();
         }
-    }, 5000);
+    }, 7000);
 
 })
 
@@ -140,9 +147,10 @@ function sendRequest(jsonData) {
                 console.log("获取成功! 答案的下标为:" + response.correctAnswerIndex + " 尝试次数:" + response.tryAcquireCount)
                 result = response;
             } else {
-                console.log(response.message);
+                console.log(response.message+" 尝试次数"+response.tryAcquireCount);
             }
         }
     });
     return result;
 }
+

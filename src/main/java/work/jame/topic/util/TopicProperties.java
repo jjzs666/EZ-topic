@@ -7,22 +7,29 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @date : 2022-05-19 19:32
  * @description :
  **/
-@ConfigurationProperties(prefix = "ez.topic")
+@ConfigurationProperties(prefix = "ez.application")
 public class TopicProperties {
     /**
      * 存放各种网站的url
      */
     private String[] url;
     /**
-     * 两个字符串相似程度允许通过值,当两个字符串相似值大于等于才会通过
+     * 题目允许通过的最低相似度
      * 1为相同 0完全不同
      */
-    private double allowPassPrice;
+    private double topicAllowPassPrice;
+
+    /**
+     * 题目允许通过的最低相似度
+     */
+    private double answerAllowPassPrice;
 
     /**
      * 尝试下一题次数,默认4次
      */
-    private Integer nextTopicRetryCount=4;
+    private Integer retryNextTopicCount=4;
+
+
 
 
     public String[] getUrl() {
@@ -33,19 +40,27 @@ public class TopicProperties {
         this.url = url;
     }
 
-    public double getAllowPassPrice() {
-        return allowPassPrice;
+    public double getTopicAllowPassPrice() {
+        return topicAllowPassPrice;
     }
 
-    public void setAllowPassPrice(double allowPassPrice) {
-        this.allowPassPrice = allowPassPrice;
+    public void setTopicAllowPassPrice(double topicAllowPassPrice) {
+        this.topicAllowPassPrice = topicAllowPassPrice;
     }
 
-    public Integer getNextTopicRetryCount() {
-        return nextTopicRetryCount;
+    public double getAnswerAllowPassPrice() {
+        return answerAllowPassPrice;
     }
 
-    public void setNextTopicRetryCount(Integer nextTopicRetryCount) {
-        this.nextTopicRetryCount = nextTopicRetryCount;
+    public void setAnswerAllowPassPrice(double answerAllowPassPrice) {
+        this.answerAllowPassPrice = answerAllowPassPrice;
+    }
+
+    public Integer getRetryNextTopicCount() {
+        return retryNextTopicCount;
+    }
+
+    public void setRetryNextTopicCount(Integer retryNextTopicCount) {
+        this.retryNextTopicCount = retryNextTopicCount;
     }
 }
