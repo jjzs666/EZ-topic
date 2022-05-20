@@ -4,6 +4,7 @@ import work.jame.topic.pojo.Topic;
 import work.jame.topic.service.MainService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import work.jame.topic.util.Result;
 
 /**
  * @author : Jame
@@ -17,7 +18,8 @@ public class MainController {
 
     @PostMapping("/getAnswer")
     public Object getAnswer(@RequestBody Topic topic) {
-
+        if(topic==null)
+            return Result.failed("topic is null!");
         return mainService.invoke(topic);
     }
 

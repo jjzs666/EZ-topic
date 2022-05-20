@@ -72,6 +72,7 @@ public class ParseServiceTIW implements ParseService {
         for (Element element : htmllist) {
             //这个答案的类型
             String searchResultType = htmllist.select("div[class=search_zhaodao_listbom]").select("em").text();
+            //判断这个题目的类型,例如当前题目是单选,然后查出的题目是多选或判断,那么在下去没有意义
             if (StringUtil.getAnswerType(searchResultType) != topic.getType()) {
                 beginIndex++;
                 continue;
@@ -100,7 +101,7 @@ public class ParseServiceTIW implements ParseService {
                 }
             }
         }
-        return Result.failed("没有找到合适的结果", currentTryAcquireCount);
+        return Result.failed("没有找到合适的答案", currentTryAcquireCount);
     }
 
 
@@ -113,6 +114,7 @@ public class ParseServiceTIW implements ParseService {
      * @return
      */
     private Integer[] lookForMatching(Topic topic, Element element, int topicIndex) {
+
         String href = element.select("li").get(topicIndex).select("a").attr("href");
         String topicHtml = null;
         try {
@@ -151,9 +153,8 @@ public class ParseServiceTIW implements ParseService {
             }
         }
 
-        //判断这个题目的类型,例如当前题目是单选,然后查出的题目是多选或判断,那么在下去没有意义
-        if ((topicType.contains("单") && topic.getType() == 1) ||
-                (topicType.contains("判断") && topic.getType() == 3)) {
+        //单选or判断
+        if (topic.getType() == 1 || topic.getType() == 3) {
 
             //相似度最高的选择答案
             Answers similarityHighest = null;

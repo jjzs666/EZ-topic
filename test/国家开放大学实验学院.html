@@ -142,7 +142,7 @@
                         console.log("获取成功! 答案的下标为:" + response.correctAnswerIndex + " 尝试次数:" + response.tryAcquireCount)
                         result = response;
                     } else {
-                        console.log(response.message);
+                        console.log(response.message+" 尝试次数"+response.tryAcquireCount);
                     }
                 }
             });
