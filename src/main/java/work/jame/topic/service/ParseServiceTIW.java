@@ -2,7 +2,7 @@ package work.jame.topic.service;
 
 import work.jame.topic.pojo.Answers;
 import work.jame.topic.pojo.Topic;
-import work.jame.topic.util.TopicProperties;
+import work.jame.topic.config.TopicProperties;
 import work.jame.topic.util.Result;
 import work.jame.topic.util.HttpUtil;
 import work.jame.topic.util.StringUtil;
@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.HashMap;
 import java.util.List;
 
 /**

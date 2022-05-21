@@ -1,4 +1,4 @@
-package work.jame.topic.util;
+package work.jame.topic.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -28,7 +28,6 @@ public class TopicProperties {
      * 尝试下一题次数,默认4次
      */
     private Integer retryNextTopicCount=4;
-
 
 
 
