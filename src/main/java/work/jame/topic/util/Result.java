@@ -1,6 +1,7 @@
 package work.jame.topic.util;
 
 import com.alibaba.fastjson.JSONObject;
+import work.jame.topic.pojo.Answers;
 
 /**
  * @author : Jame
@@ -13,39 +14,39 @@ public class Result {
     private Object data;
     private String message;
     private Integer type;
-    //正确答案下标
-    private Integer[] correctAnswerIndex;
+
+    private Answers[] answers;
     //尝试次数
     private Integer tryAcquireCount;
 
 
-    public Result(Integer code, Integer[] correctAnswerIndex, Integer tryAcquireCount, Object data, String message,Integer type) {
+    public Result(Integer code, Answers[] answers, Integer tryAcquireCount, Object data, String message,Integer type) {
         this.code = code;
         this.type=type;
         this.message = message;
         this.data = data;
-        this.correctAnswerIndex= correctAnswerIndex;
+        this.answers=answers;
         this.tryAcquireCount = tryAcquireCount;
     }
 
-    public static Object succeed(Integer[] correctAnswerIndex, Integer tryAcquireCount,Integer type) {
-        return JSONObject.toJSON(new Result(200, correctAnswerIndex, tryAcquireCount, null, null,type));
+    public static Object succeed(Answers[] answers, Integer tryAcquireCount,Integer type) {
+        return JSONObject.toJSON(new Result(200, answers, tryAcquireCount, null, null,type));
     }
 
     //成功-数据
-    public static Object succeed(Integer[] correctAnswerIndex, Integer tryAcquireCount, Object data, String message,Integer type) {
-        return JSONObject.toJSON(new Result(200, correctAnswerIndex, tryAcquireCount, data, message,type));
+    public static Object succeed(Answers[] answers, Integer tryAcquireCount, Object data, String message,Integer type) {
+        return JSONObject.toJSON(new Result(200, answers, tryAcquireCount, data, message,type));
     }
 
 
     //失败-信息-尝试次数
     public static Object failed(String message, Integer tryAcquireCount) {
-        return JSONObject.toJSON(new Result(666, new Integer[]{-1}, tryAcquireCount, null, message,-1));
+        return JSONObject.toJSON(new Result(666, null, tryAcquireCount, null, message,-1));
     }
 
     //失败-信息
     public static Object failed(String message) {
-        return JSONObject.toJSON(new Result(666,  new Integer[]{-1}, -1, null, message,-1));
+        return JSONObject.toJSON(new Result(666,  null, -1, null, message,-1));
     }
 
     public Integer getCode() {
@@ -80,12 +81,12 @@ public class Result {
         this.type = type;
     }
 
-    public Integer[] getCorrectAnswerIndex() {
-        return correctAnswerIndex;
+    public Answers[] getAnswers() {
+        return answers;
     }
 
-    public void setCorrectAnswerIndex(Integer[] correctAnswerIndex) {
-        this.correctAnswerIndex = correctAnswerIndex;
+    public void setAnswers(Answers[] answers) {
+        this.answers = answers;
     }
 
     public Integer getTryAcquireCount() {

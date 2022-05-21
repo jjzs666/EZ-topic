@@ -80,6 +80,11 @@ public class ParseServiceTIW implements ParseService {
 
         //获取到查询结果的首页,里面有很多结果,需要点进去具体那个
         for (Element element : htmllist) {
+
+            if (currentTryAcquireCount > nextTopicRetryCount) {
+                return Result.failed("没有找到合适的答案", currentTryAcquireCount);
+            }
+
             //这个题目的类型
             String searchResultType = element.select("em").text();
             //判断这个题目的类型,例如当前题目是单选,然后查出的题目是多选或判断,那么在下去没有意义
@@ -95,14 +100,11 @@ public class ParseServiceTIW implements ParseService {
                 continue;
             }
 
-            if (currentTryAcquireCount > nextTopicRetryCount) {
-                return Result.failed("没有找到合适的答案", currentTryAcquireCount);
-            }
 
-            Integer[] correctAnswerIndexes;
-            if ((correctAnswerIndexes = lookForMatching(topic, element)) != null) {
+            Object result;
+            if ((result = lookForMatching(topic, element, currentTryAcquireCount, StringUtil.getAnswerType(searchResultType))) != null) {
                 //找到了
-                return Result.succeed(correctAnswerIndexes, currentTryAcquireCount, topic.getType());
+                return result;
             } else {
                 currentTryAcquireCount++;
             }
@@ -124,7 +126,7 @@ public class ParseServiceTIW implements ParseService {
      * @param element
      * @return
      */
-    private Integer[] lookForMatching(Topic topic, Element element) {
+    private Object lookForMatching(Topic topic, Element element, Integer tryAcquireCount, Integer requestTopicType) {
 
         String href = element.select("li").select("a").attr("href");
         String topicHtml = null;
@@ -175,17 +177,17 @@ public class ParseServiceTIW implements ParseService {
             //获取到所有选项了,现在只需要遍历寻找到匹配度最高的选择返回即可
             List<Answers> answers = topic.getAnswers();
             for (Answers answer : answers) {
-                double currentSimilarity;
-                if ((currentSimilarity = StringUtil.similarityRatio(searchAnswer, answer.getContent())) > currentSimilarityHighest) {
-                    //当前的匹配度大于设置的才能返回
-                    if (currentSimilarity >= properties.getAnswerAllowPassPrice()) {
-                        currentSimilarityHighest = currentSimilarity;
+                double similarity;
+                //当前的匹配度大于设置的才能返回
+                if ((similarity = StringUtil.similarityRatio(searchAnswer, answer.getContent())) >= properties.getAnswerAllowPassPrice()) {
+                    if (similarity > currentSimilarityHighest) {
+                        currentSimilarityHighest = similarity;
                         similarityHighest = answer;
                     }
                 }
             }
             if (similarityHighest != null) {
-                return new Integer[]{similarityHighest.getIndex()};
+                return Result.succeed(new Answers[]{similarityHighest}, tryAcquireCount, requestTopicType);
             }
             return null;
 
