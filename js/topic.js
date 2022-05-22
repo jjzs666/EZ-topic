@@ -9,25 +9,16 @@
 // @require      https://code.jquery.com/jquery-3.0.0.min.js
 // @grant        none
 // ==/UserScript==
-
-
 //存放没有答案的题目,用于最后显示
 var noneAnswer = "";
 //已经解析过得数量
 var parsedCount = 1;
 $(document).ready(function () {
-    console.log("       _              __  __   ______ ")
-    console.log("      | |     /\     |  \/  | |  ____|")
-    console.log("      | |    /  \    | \  / | | |__   ")
-    console.log("  _   | |   / /\ \   | |\/| | |  __|  ")
-    console.log(" | |__| |  / ____ \  | |  | | | |____ ")
-    console.log("  \____/  /_/    \_\ |_|  |_| |______|")
     setTimeout(function () {
         if (confirm("开始吗?")) {
-            console.log("正在加载..")
             begin();
         }
-    }, 7000);
+    }, 5000);
 
 })
 
@@ -116,9 +107,9 @@ function universal(roots) {
 function disposeResult(result, topicTypeInt, ol1) {
     if (result != null) {
         if (topicTypeInt == 1 || topicTypeInt == 3) {
-            let resultCount = result.correctAnswerIndex.length;
+            let resultCount = result.answers.length;
             for (let j = 0; j < resultCount; j++) {
-                let jtm = $(ol1).children().eq(result.correctAnswerIndex[j]);
+                let jtm = $(ol1).children().eq(result.answers[j].index);
                 let lable1 = $(jtm).children().eq(0);
                 let spanRadio = $(lable1).children().eq(0);
                 $($(spanRadio).children().eq(0)).click();
@@ -144,7 +135,7 @@ function sendRequest(jsonData) {
         dataType: "json",
         success: function (response) {
             if (response.code == 200) {
-                console.log("获取成功! 答案的下标为:" + response.correctAnswerIndex + " 尝试次数:" + response.tryAcquireCount)
+                console.log("获取成功!  尝试次数:" + response.tryAcquireCount)
                 result = response;
             } else {
                 console.log(response.message+" 尝试次数"+response.tryAcquireCount);

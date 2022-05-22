@@ -18,8 +18,9 @@ public class MainController {
 
     @PostMapping("/getAnswer")
     public Object getAnswer(@RequestBody Topic topic) {
-        if(topic==null)
+        if (topic == null) {
             return Result.failed("topic is null!");
+        }
         return mainService.invoke(topic);
     }
 
