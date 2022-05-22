@@ -22,7 +22,7 @@ function begin() {
         $(video).attr("id", "wdnmdStart");
         $(video).prop("muted", true);
         //点击开始按钮
-         videoDom = document.getElementById("wdnmdStart");
+             videoDom = document.getElementById("wdnmdStart");
          videoDom.play();
 
         $(".mvp-toggle-play.mvp-first-btn-margin").click();
