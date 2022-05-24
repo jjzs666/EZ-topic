@@ -18,6 +18,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author : Jame
@@ -32,7 +33,7 @@ public class ParseServiceTIW implements ParseService {
     @Autowired
     private TopicProperties properties;
 
-    public Object parse(Topic topic) {
+    public Result parse(Topic topic) {
         String topicStr = topic.getName();
 
         //直接取最大尾数
@@ -41,7 +42,8 @@ public class ParseServiceTIW implements ParseService {
 
         String url;
         try {
-            url = properties.getUrl()[0] + URLEncoder.encode(topicStr, "utf-8");
+
+            url = properties.getAllRequestUrl().get("tiwSearchUrl") + URLEncoder.encode(topicStr, "utf-8");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
@@ -50,7 +52,7 @@ public class ParseServiceTIW implements ParseService {
         try {
             html = HttpUtil.getHtmlContent(url);
             //防止请求太快给禁ip了...
-            Thread.sleep(200);
+            Thread.sleep(150);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -91,18 +93,25 @@ public class ParseServiceTIW implements ParseService {
             if (StringUtil.getAnswerType(searchResultType) != topic.getType()) {
                 continue;
             }
+
+            //当前题目的相似度
+            double currentTopicSimilarity;
+
             //题目
             String topicTitle = element.select("p").text();
             //当题目和前端传入的匹配值超过最低限制后才会继续执行答案的判断
             //题目都不一样那答案咋能对嘛
             if (StringUtil.isEmpty(topicTitle) ||
-                    StringUtil.similarityRatio(topic.getName(), topicTitle) < properties.getTopicAllowPassPrice()) {
+                    (currentTopicSimilarity = StringUtil.similarityRatio(topic.getName(), topicTitle)) < properties.getTopicAllowPassPrice()) {
                 continue;
             }
 
 
-            Object result;
-            if ((result = lookForMatching(topic, element, currentTryAcquireCount, StringUtil.getAnswerType(searchResultType))) != null) {
+            Result result;
+            if ((result = lookForMatching(topic, element, currentTryAcquireCount, currentTopicSimilarity))
+                    != null) {
+                //设置题目的类型
+                result.setType(StringUtil.getAnswerType(searchResultType));
                 //找到了
                 return result;
             } else {
@@ -110,7 +119,7 @@ public class ParseServiceTIW implements ParseService {
             }
             try {
                 //防止访问太快
-                Thread.sleep(200);
+                Thread.sleep(150);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -124,14 +133,16 @@ public class ParseServiceTIW implements ParseService {
      *
      * @param topic
      * @param element
+     * @param tryAcquireCount
+     * @param topicSimilarity
      * @return
      */
-    private Object lookForMatching(Topic topic, Element element, Integer tryAcquireCount, Integer requestTopicType) {
+    private Result lookForMatching(Topic topic, Element element, Integer tryAcquireCount, double topicSimilarity) {
 
         String href = element.select("li").select("a").attr("href");
         String topicHtml = null;
         try {
-            topicHtml = HttpUtil.getHtmlContent(properties.getUrl()[1] + href);
+            topicHtml = HttpUtil.getHtmlContent(properties.getAllRequestUrl().get("tiwSearchParticularsUrl") + href);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -179,15 +190,15 @@ public class ParseServiceTIW implements ParseService {
             for (Answers answer : answers) {
                 double similarity;
                 //当前的匹配度大于设置的才能返回
-                if ((similarity = StringUtil.similarityRatio(searchAnswer, answer.getContent())) >= properties.getAnswerAllowPassPrice()) {
-                    if (similarity > currentSimilarityHighest) {
+                if ((similarity = StringUtil.similarityRatio(answer.getContent(), searchAnswer)) >= properties.getAnswerAllowPassPrice()) {
+                    if (similarity >= currentSimilarityHighest) {
                         currentSimilarityHighest = similarity;
                         similarityHighest = answer;
                     }
                 }
             }
             if (similarityHighest != null) {
-                return Result.succeed(new Answers[]{similarityHighest}, tryAcquireCount, requestTopicType);
+                return Result.succeed(new Answers[]{similarityHighest}, tryAcquireCount, topicSimilarity, currentSimilarityHighest);
             }
             return null;
 

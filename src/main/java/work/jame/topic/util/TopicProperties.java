@@ -2,6 +2,9 @@ package work.jame.topic.util;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author : Jame
  * @date : 2022-05-19 19:32
@@ -12,7 +15,7 @@ public class TopicProperties {
     /**
      * 存放各种网站的url
      */
-    private String[] url;
+    private Map<String, String> allRequestUrl;
     /**
      * 题目允许通过的最低相似度
      * 1为相同 0完全不同
@@ -20,24 +23,21 @@ public class TopicProperties {
     private double topicAllowPassPrice;
 
     /**
-     * 题目允许通过的最低相似度
+     * 答案允许通过的最低相似度
      */
     private double answerAllowPassPrice;
 
     /**
      * 尝试下一题次数,默认4次
      */
-    private Integer retryNextTopicCount=4;
+    private Integer retryNextTopicCount = 4;
 
-
-
-
-    public String[] getUrl() {
-        return url;
+    public Map<String, String> getAllRequestUrl() {
+        return allRequestUrl;
     }
 
-    public void setUrl(String[] url) {
-        this.url = url;
+    public void setAllRequestUrl(Map<String, String> allRequestUrl) {
+        this.allRequestUrl = allRequestUrl;
     }
 
     public double getTopicAllowPassPrice() {

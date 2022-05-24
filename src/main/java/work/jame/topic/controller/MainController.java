@@ -1,5 +1,6 @@
 package work.jame.topic.controller;
 
+import com.alibaba.fastjson.JSON;
 import work.jame.topic.pojo.Topic;
 import work.jame.topic.service.MainService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +20,9 @@ public class MainController {
     @PostMapping("/getAnswer")
     public Object getAnswer(@RequestBody Topic topic) {
         if (topic == null) {
-            return Result.failed("topic is null!");
+            return JSON.toJSONString(Result.failed("topic is null!"));
         }
-        return mainService.invoke(topic);
+        return JSON.toJSONString(mainService.invoke(topic));
     }
 
 }

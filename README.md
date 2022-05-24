@@ -32,7 +32,67 @@
 
 不仅仅能在国家开放大学上刷,类似的做题的网站也可以,只需要专门对某个网站做一个js
 
-## qq群
+## qq群:945623524
 
-**945623524**
+## 传入的json格式
+
+```json
+{
+    "name":"与计算机网络连接的系统都要遵守网路协议，网络协议主要由（）三个要素构成",
+    "type":1,
+    "answers":[
+        {
+            "index":0,
+            "content":"语句、语义和同步"
+        },
+        {
+            "index":1,
+            "content":"语句、语法和同步"
+        },
+        {
+            "index":2,
+            "content":"语法、语义和同步"
+        },
+        {
+            "index":3,
+            "content":"语法、语义和异步"
+        }
+    ]
+}
+```
+
+## 找到答案返回的json格式
+
+```json
+{
+    "answers": [             //匹配答案的集合
+        {
+            "content": "语法、语义和同步",  //匹配答案的内容
+            "index": 2          //匹配答案的下标-根据出入答案的下标
+        }
+    ],
+    "answerSimilarity": 1.0,       //寻找到答案的匹配度
+    "code": 200,                //状态码
+    "topicSimilarity": 0.97,    //题目的相似度
+    "tryAcquireCount": 1,       //尝试获取次数
+    "type": 1               //题目的类型
+}
+```
+
+## 没有找到答案返回的json格式
+
+```json
+{
+    "answerSimilarity": 0.0,
+    "code": 666,
+    "message": "没有找到合适的答案",
+    "topicSimilarity": 0.0,
+    "tryAcquireCount": 1,
+    "type": -1
+}
+```
+
+
+
+
 

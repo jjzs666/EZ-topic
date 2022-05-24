@@ -19,15 +19,13 @@ public class StringUtil {
     }
 
 
-
-
     /**
-     *  <a href="https://blog.csdn.net/rchm8519/article/details/107225653">来源</a>
+     * <a href="https://blog.csdn.net/rchm8519/article/details/107225653">来源</a>
      * 第二种实现方式 (获取两串不匹配字符数)
+     *
      * @param str
      * @param target
      * @return
-     *
      */
     private static int compare(String str, String target) {
         int d[][]; // 矩阵
@@ -73,34 +71,31 @@ public class StringUtil {
     }
 
     private static int min(int one, int two, int three) {
-        return (one = one < two ? one : two) < three ? one : three;
+        return (one = Math.min(one, two)) < three ? one : three;
     }
 
     /**
      * 比较俩个字符串的相似度（方式一）
      * 步骤1：获取两个串中不相同的字符数
      * 步骤2：不同字符数 除以 较长串的长度
-     * @param strA
-     * @param strB
+     *
+     * @param requestStr 请求的str
+     * @param searchStr  查询出的str
      * @return
      */
-    public static double similarityRatio(String strA, String strB) {
-        return 1 - (double) compare(strA, strB) / Math.max(strA.length(), strB.length());
+    public static double similarityRatio(String requestStr, String searchStr) {
+        return 1 - (double) compare(requestStr, searchStr) / Math.max(requestStr.length(), searchStr.length());
     }
 
-    public static int getAnswerType(String s){
-        if(s.contains("单"))
+    public static int getAnswerType(String s) {
+        if (s.contains("单"))
             return 1;
-        if(s.contains("多"))
+        if (s.contains("多"))
             return 2;
-        if(s.contains("判断"))
+        if (s.contains("判断"))
             return 3;
         return -1;
     }
-
-
-
-
 
 
 }

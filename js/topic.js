@@ -9,6 +9,7 @@
 // @require      https://code.jquery.com/jquery-3.0.0.min.js
 // @grant        none
 // ==/UserScript==
+
 //存放没有答案的题目,用于最后显示
 var noneAnswer = "";
 //已经解析过得数量
