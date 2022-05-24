@@ -5,6 +5,7 @@ import work.jame.topic.pojo.Answers;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Arrays;
 
 /**
  * @author : Jame
@@ -25,7 +26,6 @@ import java.math.RoundingMode;
     "code": 200,                //状态码
     "topicSimilarity": 0.97,    //题目的相似度
     "tryAcquireCount": 1,       //尝试获取次数
-    "type": 1               //题目的类型
 }
 
 * */
@@ -35,7 +35,6 @@ public class Result {
     private Integer code;
     private Object data;
     private String message;
-    private Integer type;
 
     private Answers[] answers;
     //尝试次数
@@ -45,13 +44,18 @@ public class Result {
     private double topicSimilarity;
     //结果的答案和原答案相似度
     private double answerSimilarity;
+    //来源
+    private String source;
+    //1单选 2多选 3判断
+    private Integer type;
+    //是否全部完成
+    private Boolean complete;
 
 
     public Result(Integer code, Answers[] answers, Integer tryAcquireCount,
                   Object data, String message, Integer type,
                   double topicSimilarity, double answerSimilarity) {
         this.code = code;
-        this.type = type;
         this.message = message;
         this.data = data;
         this.answers = answers;
@@ -65,28 +69,12 @@ public class Result {
     }
 
     /**
-     *
-     * @param answers 正确答案集合
-     * @param tryAcquireCount 尝试次数
-     * @param topicSimilarity 题目相似度
+     * @param answers          正确答案集合
      * @param answerSimilarity 答案相似度
      * @return
      */
-    public static Result succeed(Answers[] answers, Integer tryAcquireCount,  double topicSimilarity, double answerSimilarity) {
-        return new Result(200, answers, tryAcquireCount, null, null, null, topicSimilarity, answerSimilarity);
-    }
-
-
-    /**
-     * @param answers 正确答案集合
-     * @param tryAcquireCount 尝试次数
-     * @param type 题目类型
-     * @param topicSimilarity 题目相似度
-     * @param answerSimilarity 答案相似度
-     * @return
-     */
-    public static Result succeed(Answers[] answers, Integer tryAcquireCount,Integer type,  double topicSimilarity, double answerSimilarity) {
-        return new Result(200, answers, tryAcquireCount, null, null, type, topicSimilarity, answerSimilarity);
+    public static Result succeed(Answers[] answers,double answerSimilarity) {
+        return new Result(200, answers, 0, null, null, -1, 0, answerSimilarity);
     }
 
 
@@ -124,13 +112,6 @@ public class Result {
         this.message = message;
     }
 
-    public Integer getType() {
-        return type;
-    }
-
-    public void setType(Integer type) {
-        this.type = type;
-    }
 
     public Answers[] getAnswers() {
         return answers;
@@ -153,7 +134,8 @@ public class Result {
     }
 
     public void setTopicSimilarity(double topicSimilarity) {
-        this.topicSimilarity = topicSimilarity;
+        BigDecimal bigDecimal = new BigDecimal(topicSimilarity).setScale(2, RoundingMode.HALF_UP);
+        this.topicSimilarity = bigDecimal.doubleValue();
     }
 
     public double getAnswerSimilarity() {
@@ -161,6 +143,47 @@ public class Result {
     }
 
     public void setAnswerSimilarity(double answerSimilarity) {
-        this.answerSimilarity = answerSimilarity;
+        BigDecimal bigDecimal = new BigDecimal(answerSimilarity).setScale(2, RoundingMode.HALF_UP);
+        this.answerSimilarity = bigDecimal.doubleValue();
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
+    }
+
+    public Boolean getComplete() {
+        return complete;
+    }
+
+    public void setComplete(Boolean complete) {
+        this.complete = complete;
+    }
+
+    @Override
+    public String toString() {
+        return "Result{" +
+                "code=" + code +
+                ", data=" + data +
+                ", message='" + message + '\'' +
+                ", answers=" + Arrays.toString(answers) +
+                ", tryAcquireCount=" + tryAcquireCount +
+                ", topicSimilarity=" + topicSimilarity +
+                ", answerSimilarity=" + answerSimilarity +
+                ", source='" + source + '\'' +
+                ", type=" + type +
+                ", complete=" + complete +
+                '}';
     }
 }

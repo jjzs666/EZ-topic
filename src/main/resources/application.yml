@@ -1,11 +1,6 @@
 server:
   port: 9897
-
-ez:
-  application:
-    allRequestUrl:
-      tiwSearchUrl: https://www.tiw.cn/s/
-      tiwSearchParticularsUrl: https://www.tiw.cn
-    retry-next-topic-count: 4
-    topic-allow-pass-price: 0.85
-    answer-allow-pass-price: 0.85
+#ez:
+#  application:
+#    exclude-service:
+#      - JST

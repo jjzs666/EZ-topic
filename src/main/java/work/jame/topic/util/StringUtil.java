@@ -1,6 +1,9 @@
 package work.jame.topic.util;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author : Jame
@@ -95,6 +98,23 @@ public class StringUtil {
         if (s.contains("判断"))
             return 3;
         return -1;
+    }
+
+    public static List<String> englishAbbreviationConversionToChineseName(Collection<String> collection) {
+        ArrayList<String> list = new ArrayList<>();
+        for (String o : collection) {
+            String re = null;
+            switch (o) {
+                case "JST":
+                    re = "简搜题";
+                    break;
+                case "TIW":
+                    re = "题王";
+                    break;
+            }
+            list.add(re);
+        }
+        return list;
     }
 
 

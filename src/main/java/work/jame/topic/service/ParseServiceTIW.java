@@ -15,9 +15,11 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -26,7 +28,7 @@ import java.util.concurrent.TimeUnit;
  * https://www.tiw.cn/
  * 题王网站解析服务
  **/
-@Service
+@Service("TIW")
 public class ParseServiceTIW implements ParseService {
 
 
@@ -43,29 +45,20 @@ public class ParseServiceTIW implements ParseService {
         String url;
         try {
 
-            url = properties.getAllRequestUrl().get("tiwSearchUrl") + URLEncoder.encode(topicStr, "utf-8");
+            url = "https://www.tiw.cn/s/" + URLEncoder.encode(topicStr, "utf-8");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
 
-        String html = null;
-        try {
-            html = HttpUtil.getHtmlContent(url);
-            //防止请求太快给禁ip了...
-            Thread.sleep(150);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        if (StringUtil.isEmpty(html)) {
+        Document doc = HttpUtil.htmlTransitionDocument(url, properties.getIntervalTime());
+
+        if (doc == null) {
             return Result.failed("该页面没有数据!url:" + url);
         }
 
         //当前尝试次数
         int currentTryAcquireCount = 1;
 
-        Document doc = Jsoup.parse(html);
 
         Elements htmllist = doc.select("ul[class=search_zhaodao_list] li");
 
@@ -84,7 +77,7 @@ public class ParseServiceTIW implements ParseService {
         for (Element element : htmllist) {
 
             if (currentTryAcquireCount > nextTopicRetryCount) {
-                return Result.failed("没有找到合适的答案", currentTryAcquireCount);
+                return Result.failed("尝试次数已完", currentTryAcquireCount);
             }
 
             //这个题目的类型
@@ -94,32 +87,39 @@ public class ParseServiceTIW implements ParseService {
                 continue;
             }
 
+            //题目
+            String topicTitle = element.select("p").text();
+
             //当前题目的相似度
             double currentTopicSimilarity;
 
-            //题目
-            String topicTitle = element.select("p").text();
+
             //当题目和前端传入的匹配值超过最低限制后才会继续执行答案的判断
             //题目都不一样那答案咋能对嘛
             if (StringUtil.isEmpty(topicTitle) ||
                     (currentTopicSimilarity = StringUtil.similarityRatio(topic.getName(), topicTitle)) < properties.getTopicAllowPassPrice()) {
                 continue;
             }
+            String href = element.select("li").select("a").attr("href");
 
+            Document particularsDoc = HttpUtil.htmlTransitionDocument("https://www.tiw.cn/"+href, properties.getIntervalTime());
 
             Result result;
-            if ((result = lookForMatching(topic, element, currentTryAcquireCount, currentTopicSimilarity))
+            if ((result = lookForMatching(topic, particularsDoc))
                     != null) {
-                //设置题目的类型
-                result.setType(StringUtil.getAnswerType(searchResultType));
                 //找到了
+                //设置题目的相似度和尝试次数
+                result.setTryAcquireCount(currentTryAcquireCount);
+                result.setTopicSimilarity(currentTopicSimilarity);
+                result.setSource("题王");
+                result.setType(topic.getType());
                 return result;
             } else {
                 currentTryAcquireCount++;
             }
             try {
                 //防止访问太快
-                Thread.sleep(150);
+                Thread.sleep(properties.getIntervalTime());
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -127,37 +127,26 @@ public class ParseServiceTIW implements ParseService {
         return Result.failed("没有找到合适的答案", currentTryAcquireCount);
     }
 
+    @Override
+    public void parse(Topic topic, Set<Result> resultSet) {
+        resultSet.add(parse(topic));
+    }
 
     /**
      * 寻找匹配度最高的答案
      *
      * @param topic
-     * @param element
-     * @param tryAcquireCount
-     * @param topicSimilarity
+     * @param document
      * @return
      */
-    private Result lookForMatching(Topic topic, Element element, Integer tryAcquireCount, double topicSimilarity) {
+    public Result lookForMatching(Topic topic, Document document) {
 
-        String href = element.select("li").select("a").attr("href");
-        String topicHtml = null;
-        try {
-            topicHtml = HttpUtil.getHtmlContent(properties.getAllRequestUrl().get("tiwSearchParticularsUrl") + href);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        String topicType = document.select("p[class=zuoti_maintop_left]").select("span").text();
 
-        if (StringUtil.isEmpty(topicHtml)) {
-            return null;
-        }
-        //现在已经到题目的具体解析界面了,寻找答案即可
-        Document topicDoc = Jsoup.parse(topicHtml);
-        String topicType = topicDoc.select("p[class=zuoti_maintop_left]").select("span").text();
-
-        Elements select = topicDoc.select("div[class=zuoti_main_list danxuan]").select("div[class=chapter_main_timutigan]");
+        Elements select = document.select("div[class=zuoti_main_list danxuan]").select("div[class=chapter_main_timutigan]");
 
         //题解给的选项
-        String key = topicDoc.select("span[class=zuoti_note_bomspan]").text().substring(0, 1).toLowerCase();
+        String key = document.select("span[class=zuoti_note_bomspan]").text().substring(0, 1).toLowerCase();
 
         String searchAnswer = null;
         for (Element element1 : select) {
@@ -198,16 +187,13 @@ public class ParseServiceTIW implements ParseService {
                 }
             }
             if (similarityHighest != null) {
-                return Result.succeed(new Answers[]{similarityHighest}, tryAcquireCount, topicSimilarity, currentSimilarityHighest);
+                return Result.succeed(new Answers[]{similarityHighest}, currentSimilarityHighest);
             }
             return null;
 
         } else if (topicType.contains("多") && topic.getType() == 2) {
+            // TODO: 2022.05.24 多选的题目 
         }
-//      }  } else if (topicType.contains("判断") && topic.getType() == 3) {
-//            //searchAnswer
-//         //   return Result.succeed(topicDoc.select("span[class=zuoti_note_bomspan]").text().substring(0, 1));
-//        }
         return null;
     }
 }

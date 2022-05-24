@@ -12,33 +12,37 @@ import java.util.Map;
  **/
 @ConfigurationProperties(prefix = "ez.application")
 public class TopicProperties {
-    /**
-     * 存放各种网站的url
-     */
-    private Map<String, String> allRequestUrl;
+
     /**
      * 题目允许通过的最低相似度
      * 1为相同 0完全不同
      */
-    private double topicAllowPassPrice;
+    private double topicAllowPassPrice = 0.85;
 
     /**
      * 答案允许通过的最低相似度
      */
-    private double answerAllowPassPrice;
+    private double answerAllowPassPrice = 0.85;
 
     /**
-     * 尝试下一题次数,默认4次
+     * 尝试下一题次数
      */
-    private Integer retryNextTopicCount = 4;
+    private Integer retryNextTopicCount = 3;
 
-    public Map<String, String> getAllRequestUrl() {
-        return allRequestUrl;
-    }
+    /**
+     * 访问页面间隔时间
+     */
+    private Long intervalTime = 800L;
 
-    public void setAllRequestUrl(Map<String, String> allRequestUrl) {
-        this.allRequestUrl = allRequestUrl;
-    }
+    /**
+     * 最大等待寻找答案时间
+     */
+    private Long waitTime = 4000L;
+    /**
+     * 指定不使用那个服务
+     */
+    private List<String> excludeService;
+
 
     public double getTopicAllowPassPrice() {
         return topicAllowPassPrice;
@@ -62,5 +66,29 @@ public class TopicProperties {
 
     public void setRetryNextTopicCount(Integer retryNextTopicCount) {
         this.retryNextTopicCount = retryNextTopicCount;
+    }
+
+    public Long getIntervalTime() {
+        return intervalTime;
+    }
+
+    public void setIntervalTime(Long intervalTime) {
+        this.intervalTime = intervalTime;
+    }
+
+    public Long getWaitTime() {
+        return waitTime;
+    }
+
+    public void setWaitTime(Long waitTime) {
+        this.waitTime = waitTime;
+    }
+
+    public List<String> getExcludeService() {
+        return excludeService;
+    }
+
+    public void setExcludeService(List<String> excludeService) {
+        this.excludeService = excludeService;
     }
 }

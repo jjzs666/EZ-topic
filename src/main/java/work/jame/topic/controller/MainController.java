@@ -5,6 +5,7 @@ import work.jame.topic.pojo.Topic;
 import work.jame.topic.service.MainService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import work.jame.topic.service.ParseServiceJST;
 import work.jame.topic.util.Result;
 
 /**
@@ -17,6 +18,9 @@ public class MainController {
     @Autowired
     private MainService mainService;
 
+    @Autowired
+    private ParseServiceJST parseServiceJST;
+
     @PostMapping("/getAnswer")
     public Object getAnswer(@RequestBody Topic topic) {
         if (topic == null) {
@@ -24,5 +28,11 @@ public class MainController {
         }
         return JSON.toJSONString(mainService.invoke(topic));
     }
+
+    @PostMapping("/testJST")
+    public Object testJST(@RequestBody Topic topic) {
+        return JSON.toJSONString(parseServiceJST.parse(topic));
+    }
+
 
 }

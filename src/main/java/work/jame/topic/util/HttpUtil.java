@@ -1,12 +1,15 @@
 package work.jame.topic.util;
  
 import org.apache.http.HttpEntity;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
- 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 import java.io.IOException;
 
 /**
@@ -17,6 +20,28 @@ import java.io.IOException;
  * @Version: V1.0
  */
 public class HttpUtil {
+
+    public static Document htmlTransitionDocument(String url,long intervalTime){
+        String html = null;
+        try {
+            html = HttpUtil.getHtmlContent(url);
+            Thread.sleep(intervalTime);
+        } catch (IOException e) {
+            //e.printStackTrace();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        if (StringUtil.isEmpty(html)) {
+            return null;
+        }
+        return Jsoup.parse(html);
+    }
+
+
+
+
+
+
     /**
      * 公共爬虫类
      * @param url 请求Uri路径
@@ -26,6 +51,11 @@ public class HttpUtil {
     public static String getHtmlContent(String url) throws IOException {
         //1、建立请求客户端
         CloseableHttpClient aDefault = HttpClients.createDefault();
+
+        RequestConfig config = RequestConfig.custom()
+                .setConnectionRequestTimeout(800)
+                .setConnectTimeout(800)
+                .setSocketTimeout(800).build();
 
         //2、获取请求地址
         HttpGet httpGet = new HttpGet(url);
@@ -48,6 +78,7 @@ public class HttpUtil {
        // httpGet.setHeader("Upgrade-Insecure-Requests","1");
         httpGet.setHeader("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36");
 
+        httpGet.setConfig(config);
 
         //3、获取网址返回结果
         CloseableHttpResponse execute = aDefault.execute(httpGet);

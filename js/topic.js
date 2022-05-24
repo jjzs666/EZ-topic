@@ -136,10 +136,10 @@ function sendRequest(jsonData) {
         dataType: "json",
         success: function (response) {
             if (response.code == 200) {
-                console.log("获取成功!  尝试次数:" + response.tryAcquireCount)
+                console.log("获取成功! 尝试次数:" + response.tryAcquireCount + "来源" + response.source)
                 result = response;
             } else {
-                console.log(response.message+" 尝试次数"+response.tryAcquireCount);
+                console.log(response.message + " 尝试次数" + response.tryAcquireCount);
             }
         }
     });

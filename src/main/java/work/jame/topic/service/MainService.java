@@ -8,12 +8,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import work.jame.topic.util.Result;
 import work.jame.topic.util.StringUtil;
+import work.jame.topic.util.TopicProperties;
 
 import java.util.*;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author : Jame
@@ -22,13 +24,16 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class MainService {
 
+    @Autowired
+    private TopicProperties properties;
+
 
     public Result invoke(Topic topic) {
         if (StringUtil.isEmpty(topic.getName())) {
             return Result.failed("提交的题目为空");
         }
 
-        CountDownLatch countDownLatch = new CountDownLatch(1);
+        CountDownLatch countDownLatch = new CountDownLatch(2);
 
 
         Set<Result> results = new HashSet<>();
@@ -36,25 +41,45 @@ public class MainService {
         Map<String, ParseService> map = SpringConfig.getBeansByType(ParseService.class);
         Set<Map.Entry<String, ParseService>> entries = map.entrySet();
 
+
         for (Map.Entry<String, ParseService> entry : entries) {
             new Thread(() -> {
-                try {
-                    results.add(entry.getValue().parse(topic));
-                } finally {
-                    countDownLatch.countDown();
+                synchronized (MainService.class) {
+                    try {
+                        Result parse = entry.getValue().parse(topic);
+                        if (parse.getCode() == 200) {
+                            results.add(parse);
+                        }
+                    } finally {
+                        countDownLatch.countDown();
+                    }
                 }
 
             }).start();
         }
+
+        boolean complete;
+
         try {
-            boolean await = countDownLatch.await(2, TimeUnit.SECONDS);
+            complete = countDownLatch.await(properties.getWaitTime(), TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+        System.out.println(results);
+        Optional<Result> max = results.stream().max((x, y) -> {
+            Double xv = x.getAnswerSimilarity() + x.getTopicSimilarity();
+            Double yv = y.getAnswerSimilarity() + y.getTopicSimilarity();
+            return xv.compareTo(yv);
+        });
+        if (max.isPresent()) {
+            Result result = max.get();
+            result.setComplete(complete);
+            return result;
+        }
+        Result failed = Result.failed("查询没有结果");
+        failed.setComplete(complete);
+        return failed;
 
-
-        Optional<Result> max = results.stream().max(Comparator.comparingDouble(x -> x.getTopicSimilarity() + x.getAnswerSimilarity()));
-        return max.orElseGet(() -> Result.failed("没有找到数据"));
 
     }
 
