@@ -91,7 +91,18 @@
     "type": -1
 }
 ```
-
+## 配置
+```yaml
+ez:
+  application:
+    interval-time: 800  #请求间隔 单位毫秒
+    answer-allow-pass-price: 0.85 #允许答案通过最低相似度
+    retry-next-topic-count: 3 #尝试次数
+    topic-allow-pass-price: 0.85 #允许题目通过最低相似度
+    wait-time: 4000 #寻找答案最大等待时间
+#    exclude-service:
+#      - JST        不使用某个题源
+```
 
 
 

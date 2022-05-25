@@ -44,16 +44,16 @@ public class MainService {
 
         for (Map.Entry<String, ParseService> entry : entries) {
             new Thread(() -> {
-                synchronized (MainService.class) {
+               // synchronized (MainService.class) {
                     try {
                         Result parse = entry.getValue().parse(topic);
-                        if (parse.getCode() == 200) {
+
                             results.add(parse);
-                        }
+
                     } finally {
                         countDownLatch.countDown();
                     }
-                }
+              //  }
 
             }).start();
         }
